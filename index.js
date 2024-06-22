@@ -2,6 +2,8 @@
 const express = require('express');
 const app = express();
 const port = 3030;
+const multer = require('multer');
+const path = require('path');
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -12,6 +14,40 @@ let items = [
   { id: 2, name: 'Item Two' },
   { id: 3, name: 'Item Three' }
 ];
+
+// Configure storage for uploaded files
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+// Initialize multer with storage configuration
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB file size limit
+  fileFilter: (req, file, cb) => {
+    const fileTypes = /jpeg|jpg|png/;
+    const extName = fileTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimeType = fileTypes.test(file.mimetype);
+    
+    if (mimeType && extName) {
+      return cb(null, true);
+    } else {
+      cb('Error: Images Only!');
+    }
+  }
+});
+
+// Create a route for file upload
+app.post('/upload', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+  res.send(`File uploaded successfully: ${req.file.filename}`);
+});
 
 // GET route to fetch all items
 app.get('/', (req, res) => {
