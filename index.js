@@ -14,6 +14,11 @@ let items = [
 ];
 
 // GET route to fetch all items
+app.get('/', (req, res) => {
+  res.send('<h1>Hello from ec2</h1>')
+});
+
+// GET route to fetch all items
 app.get('/api/items', (req, res) => {
   res.json(items);
 });
